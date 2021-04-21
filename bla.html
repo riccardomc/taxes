@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head> 
+<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script> 
+<script type="text/javascript">
+window.onload = function () {
+	var chart = new CanvasJS.Chart("chartContainer", { 
+		title: {
+			text: "Adding & Updating dataPoints"
+		},
+		data: [
+		{
+			type: "spline",
+			dataPoints: [],
+		}
+		]
+	});
+	chart.render();	
+
+  var years = 20;
+  var rate = 100;  
+
+  calculateAssets = function() {
+    dataPoints = [];
+    assets = 0;
+    for (i = 1; i <= years ; i++) {
+      assets = assets + rate - rate * 0.37
+      dataPoints.push({ y: assets }); 
+    }
+    return dataPoints;
+  };
+
+  var slider = document.getElementById("yearsRange");   
+  slider.oninput = function () {
+    years = this.value
+    assets = calculateAssets()
+    console.log(assets)
+    chart.options.data[0].dataPoints = assets 
+    chart.render();
+
+	};
+
+  var slider = document.getElementById("rateRange");   
+  slider.oninput = function () {
+    rate = this.value
+    assets = calculateAssets()
+    console.log(assets)
+    chart.options.data[0].dataPoints = assets 
+    chart.render();
+
+	};
+}
+
+</script>
+</head>  
+<body>  
+<div id="chartContainer" style="width:100%; height:280px"></div>  
+<div class="slidecontainer">
+  <input type="range" min="1" max="30" value="10" class="slider" id="yearsRange">
+</div>
+<div class="slidecontainer">
+  <input type="range" min="1" max="250" value="100" class="slider" id="rateRange">
+</div>
+</body>
+</html>
