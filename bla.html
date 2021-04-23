@@ -15,11 +15,27 @@
 
 window.onload = function () {
 	var chart = new CanvasJS.Chart("chartContainer", { 
+    animationEnabled: true,
 		title: {
 			text: "Moneyz"
 		},
+    toolTip: {
+		  shared: true
+	  },
 		data: [
 		{
+      name: "revenue",
+			type: "spline",
+			dataPoints: [],
+		},
+		{
+      name: "net income",
+			type: "spline",
+			dataPoints: [],
+		},
+		{
+      
+      name: "taxes",
 			type: "spline",
 			dataPoints: [],
 		}
@@ -27,20 +43,55 @@ window.onload = function () {
 	});
 
   calculateAssets = function(p) {
-    dataPoints = [];
+    revenueDataPoints = [];
+    netIncomeDataPoints = [];
+    taxesDataPoints = [];
+    var revenue = 0;
     var assets = 0;
+    var taxes = 0;
     for (i = 1; i <= p.years; i++) {
-      grossIncome = p.rate * p.days * p.months * p.hours * 4
-      taxes = grossIncome * 0.0
-      netIncome = grossIncome - taxes
+      grossIncome = generateIncome(parameters)
+      netIncome = incomeTaxBox1(grossIncome, true)
       assets += netIncome
-      dataPoints.push({ x: i, y: assets }); 
+      taxes += grossIncome - netIncome
+      revenue += grossIncome
+      revenueDataPoints.push({ x: i, y: revenue }); 
+      netIncomeDataPoints.push({ x: i, y: assets }); 
+      taxesDataPoints.push({ x: i, y: taxes }); 
     }
     console.log(p)
-    chart.options.data[0].dataPoints = dataPoints
+    chart.options.data[0].dataPoints = revenueDataPoints
+    chart.options.data[1].dataPoints = netIncomeDataPoints
+    chart.options.data[2].dataPoints = taxesDataPoints
     chart.render();
-    return dataPoints;
   };
+
+  function generateIncome(p) {
+    return p.rate * p.days * p.months * p.hours * 4
+  }
+
+  function incomeTaxBox1(gross_income, isZzp) {
+    if (isZzp) {
+        //taxable_income = gross_income - zelfstandigenaftrek(2021)
+        taxable_income = gross_income
+    } else {
+        taxable_income = gross_income
+    }
+    income_bracket_1 = taxable_income <= 68508 ? taxable_income : 68508
+    income_bracket_2 = taxable_income - 68508 > 0 ? taxable_income - 68508 : 0
+    tax_bracket_1 = income_bracket_1 * 0.371
+    tax_bracket_2 = income_bracket_2 * 0.495
+
+    total_tax = tax_bracket_1 + tax_bracket_2
+    net_income = taxable_income - total_tax
+
+    return net_income
+  }
+
+  function scenarioZZP(parameters) {
+    income = generateIncome(parameters)
+    netIncome = incomeTaxBox1(income)
+  }
 
   calculateAssets(parameters)
 
