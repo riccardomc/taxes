@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head> 
+<head>
 <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
-<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script> 
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script type="text/javascript">
 
   var parameters = {
+    "salary": 50000,
     "rate": 110,
     "years": 20,
     "months": 10,
@@ -14,7 +15,7 @@
   };
 
 window.onload = function () {
-	var chart = new CanvasJS.Chart("chartContainer", { 
+	var chart = new CanvasJS.Chart("chartContainer", {
     animationEnabled: true,
 		title: {
 			text: "Moneyz"
@@ -29,13 +30,22 @@ window.onload = function () {
 			dataPoints: [],
 		},
 		{
-      name: "net income",
+      name: "zzp net income",
 			type: "spline",
 			dataPoints: [],
 		},
 		{
-      
-      name: "taxes",
+      name: "bv net income",
+			type: "spline",
+			dataPoints: [],
+		},
+		{
+      name: "zzp taxes",
+			type: "spline",
+			dataPoints: [],
+		},
+    {
+      name: "bv taxes",
 			type: "spline",
 			dataPoints: [],
 		}
@@ -46,23 +56,43 @@ window.onload = function () {
     revenueDataPoints = [];
     netIncomeDataPoints = [];
     taxesDataPoints = [];
+    bvNetIncomeDataPoints = [];
+    bvTaxesDataPoints = [];
     var revenue = 0;
     var assets = 0;
     var taxes = 0;
-    for (i = 1; i <= p.years; i++) {
+    var bvTaxes = 0;
+    var bvAssets = 0;
+    for (year = 1; year <= p.years; year++) {
       grossIncome = generateIncome(parameters)
-      netIncome = incomeTaxBox1(grossIncome, true)
+
+      // ZZP
+      netIncome = incomeTaxBox1(grossIncome, true, year)
       assets += netIncome
       taxes += grossIncome - netIncome
       revenue += grossIncome
-      revenueDataPoints.push({ x: i, y: revenue }); 
-      netIncomeDataPoints.push({ x: i, y: assets }); 
-      taxesDataPoints.push({ x: i, y: taxes }); 
+      revenueDataPoints.push({ x: new Date(2020 + year, 01, 01), y: revenue });
+      netIncomeDataPoints.push({ x: new Date(2020 + year, 01, 01), y: assets });
+      taxesDataPoints.push({ x: new Date(2020 + year, 01, 01), y: taxes });
+
+      // BV
+      bvNetProfit = grossIncome - corporationTax(grossIncome) - p.salary
+      personalNetProfit = p.salary - incomeTaxBox1(p.salary, false, year)
+      netDividend = bvNetProfit - dividendTax(bvNetProfit)
+      personalNetProfit += netDividend - incomeTaxBox2(netDividend)
+
+      bvAssets += personalNetProfit
+      bvTaxes += corporationTax(grossIncome) + incomeTaxBox1(p.salary, false, year) + dividendTax(bvNetProfit)
+
+      bvNetIncomeDataPoints.push({ x: new Date(2020 + year, 01, 01), y: bvAssets });
+      bvTaxesDataPoints.push({ x: new Date(2020 + year, 01, 01), y: bvTaxes });
     }
     console.log(p)
     chart.options.data[0].dataPoints = revenueDataPoints
     chart.options.data[1].dataPoints = netIncomeDataPoints
-    chart.options.data[2].dataPoints = taxesDataPoints
+    chart.options.data[2].dataPoints = bvNetIncomeDataPoints
+    chart.options.data[3].dataPoints = taxesDataPoints
+    chart.options.data[4].dataPoints = bvTaxesDataPoints
     chart.render();
   };
 
@@ -70,10 +100,35 @@ window.onload = function () {
     return p.rate * p.days * p.months * p.hours * 4
   }
 
-  function incomeTaxBox1(gross_income, isZzp) {
+  function corporationTax(gross_income) {
+    if (gross_income < 200000) {
+      return gross_income * 0.19
+    }  else {
+      return gross_income * 0.25
+    }
+  }
+
+  function dividendTax(amount) {
+    return amount * 0.15
+  }
+
+  function zelfstandigenaftrek(year){
+    // https://business.gov.nl/amendment/private-business-ownership-allowance-reduced/
+    if (year < 4) {
+      start_up_deduc if first_three_years else 0 if first_three_years else 0 if first_three_years else 0tion = 2123
+    } else {
+      start_up_deduction = 0
+    }
+    return 6670 + start_up_deduction
+  }
+
+  function incomeTaxBox2(amount) {
+    return amount * 0.2625
+  }
+
+  function incomeTaxBox1(gross_income, isZzp, year) {
     if (isZzp) {
-        //taxable_income = gross_income - zelfstandigenaftrek(2021)
-        taxable_income = gross_income
+        taxable_income = gross_income - zelfstandigenaftrek(year)
     } else {
         taxable_income = gross_income
     }
@@ -93,43 +148,63 @@ window.onload = function () {
     netIncome = incomeTaxBox1(income)
   }
 
+  function scenarioBV(parameters) {
+    grossIncome = generateIncome(parameters)
+  }
+
   calculateAssets(parameters)
 
   for(var key in parameters) {
-    console.log(key)
-    document.getElementById(key).oninput = function(k) {
+
+    var output = document.getElementById(key+"Text")
+    var range = document.getElementById(key+"Range")
+
+    output.value = range.value
+    range.oninput = function(k, o) {
       return function () {
         parameters[k] = parseInt(this.value)
+        o.value = this.value
         calculateAssets(parameters)
      };
-    }(key);
+    }(key, output);
   };
 
 }
 
 </script>
-</head>  
-<body>  
-<div id="chartContainer" style="width:100%; height:520px"></div>  
+</head>
+<body>
+<div id="chartContainer" style="width:100%; height:520px"></div>
 <div class="slidecontainer">
-  years
-  <input type="range" min="1" max="30" value="10" class="slider" id="years">
+  years forecast
+  <input type="range" min="1" max="30" value="10" class="slider" id="yearsRange">
+  <input type="text" readonly="true" id="yearsText">
 </div>
 <div class="slidecontainer">
-  rate
-  <input type="range" min="1" max="250" value="100" class="slider" id="rate">
+  rate per hour
+  <input type="range" min="1" max="250" value="100" class="slider" id="rateRange">
+  <input type="text" readonly="true" id="rateText">
 </div>
 <div class="slidecontainer">
-  months
-  <input type="range" min="1" max="12" value="10" class="slider" id="months">
+  months per year
+  <input type="range" min="1" max="12" value="10" class="slider" id="monthsRange">
+  <input type="text" readonly="true" id="monthsText">
 </div>
 <div class="slidecontainer">
-  days
-  <input type="range" min="1" max="7" value="4" class="slider" id="days">
+  days per week
+  <input type="range" min="1" max="7" value="4" class="slider" id="daysRange">
+  <input type="text" readonly="true" id="daysText">
 </div>
 <div class="slidecontainer">
-  hours
-  <input type="range" min="1" max="24" value="4" class="slider" id="hours">
+  hours per day
+  <input type="range" min="1" max="24" value="4" class="slider" id="hoursRange">
+  <input type="text" readonly="true" id="hoursText">
 </div>
+<div class="slidecontainer">
+  salary from BV
+  <input type="range" min="1" max="100000" value="50000" class="slider" id="salaryRange">
+  <input type="text" readonly="true" id="salaryText">
+</div>
+
 </body>
 </html>

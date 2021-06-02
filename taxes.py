@@ -92,21 +92,21 @@ def dividend_tax(amount):
 
 
 def scenario_zzp(initial_assets=0):
-    income = generate_income(110, 4, 10)
+    income = generate_income(120, 5, 12)
     net_income = income_tax_box1(income)
     net_assets = income_tax_box3(initial_assets)
     return net_income + net_assets
 
 
 def scenario_bv(initial_assets=0):
-    salary = 67000
-    gross_income = generate_income(110, 4, 10)
+    salary = 13095
+    gross_income = generate_income(120, 5, 12)
     bv_net_profit = gross_income - corporation_tax(gross_income) - salary
     personal_net_profit = salary - income_tax_box1(salary, zzp=False)
-    personal_net_profit = bv_net_profit - dividend_tax(bv_net_profit)
+    personal_net_profit = personal_net_profit + bv_net_profit - dividend_tax(bv_net_profit)
     net_assets = income_tax_box3(initial_assets)
 
-    return personal_net_profit + net_assets + bv_net_profit
+    return personal_net_profit + net_assets
 
 
 def yearly_expenses():
