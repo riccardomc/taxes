@@ -71,6 +71,101 @@ window.onload = function () {
 		]
 	});
 
+	var chart2 = new CanvasJS.Chart("chartComposition", {
+    animationEnabled: true,
+		title: {
+			text: "Moneyz"
+		},
+    toolTip: {
+		  shared: true
+	  },
+		data: [
+		{
+      name: "zzp net assets",
+			type: "stackedColumn100",
+			dataPoints: [],
+      showInLegend: true,
+		},
+		{
+      name: "zzp taxes",
+			type: "stackedColumn100",
+			dataPoints: [],
+      showInLegend: true,
+		},
+		{
+      name: "bv personal net assets",
+			type: "stackedColumn100",
+			dataPoints: [],
+      showInLegend: true,
+		},
+		{
+      name: "bv net assets",
+			type: "stackedColumn100",
+			dataPoints: [],
+      showInLegend: true,
+		},
+    {
+      name: "bv taxes",
+			type: "stackedColumn100",
+			dataPoints: [],
+      showInLegend: true,
+		}
+		]
+	});
+
+  calculateComposition = function(p) {
+    netIncomeDataPoints = [];
+    taxesDataPoints = [];
+    bvNetIncomeDataPoints = [];
+    bvPersonalAssetsDataPoints = [];
+    bvTaxesDataPoints = [];
+    var assets = 0;
+    var taxes = 0;
+    var bvTaxes = 0;
+    var bvAssets = 0;
+    var bvPersonalAssets = 0;
+    grossIncome = generateIncome(parameters)
+    date = new Date(2020 + year, 0, 1)
+
+    // ZZP
+    netIncome = incomeTaxBox1(grossIncome, true, year)
+    assets += netIncome
+    taxes += grossIncome - netIncome
+    netIncomeDataPoints.push({ y: assets, x: 1, label: "ZZP" });
+    taxesDataPoints.push({ y: taxes, x: 1, label: "ZZP" });
+
+    // BV
+    // we pay ourselves a fixed salary, which is subtracted from bv profit as expense
+    bvNetProfit = corporationTax(grossIncome) - p.salary
+
+    // we pay ourselves a dividend as a percentage of net profit
+    grossDividend = bvNetProfit * (p.dividend / 100)
+    netDividend =  dividendTax(grossDividend)
+
+    // Personal Net Profit is salary + dividend - taxes
+    personalNetProfit = incomeTaxBox1(p.salary, false, year)
+    personalNetProfit += incomeTaxBox2(netDividend)
+    bvPersonalAssets += personalNetProfit
+
+    // Assets left in the BV
+    bvNetProfit = bvNetProfit - grossDividend
+    bvAssets += bvNetProfit
+
+    // Taxes payed by BV and ourselves
+    bvTaxes += grossIncome - bvNetProfit - personalNetProfit
+
+    bvPersonalAssetsDataPoints.push({ x: 2, y: bvPersonalAssets, label: "BV" });
+    bvNetIncomeDataPoints.push({ x: 2, y: bvAssets, label: "BV" });
+    bvTaxesDataPoints.push({ x: 2, y: bvTaxes, label: "BV" });
+
+    chart2.options.data[0].dataPoints = netIncomeDataPoints
+    chart2.options.data[1].dataPoints = taxesDataPoints
+    chart2.options.data[2].dataPoints = bvPersonalAssetsDataPoints
+    chart2.options.data[3].dataPoints = bvNetIncomeDataPoints
+    chart2.options.data[4].dataPoints = bvTaxesDataPoints
+    chart2.render();
+  };
+
   calculateAssets = function(p) {
     revenueDataPoints = [];
     netIncomeDataPoints = [];
@@ -150,7 +245,7 @@ window.onload = function () {
     return amount - amount * 0.15
   }
 
-  function zelfstandigenaftrek(year){
+  function zelfstandigenaftrek(year) {
     // https://business.gov.nl/amendment/private-business-ownership-allowance-reduced/
     if (year < 4) {
       start_up_deduction = 2123
@@ -181,16 +276,8 @@ window.onload = function () {
     return net_income
   }
 
-  function scenarioZZP(parameters) {
-    income = generateIncome(parameters)
-    netIncome = incomeTaxBox1(income)
-  }
-
-  function scenarioBV(parameters) {
-    grossIncome = generateIncome(parameters)
-  }
-
   calculateAssets(parameters)
+  calculateComposition(parameters)
 
   for(var key in parameters) {
 
@@ -203,6 +290,7 @@ window.onload = function () {
         parameters[k] = parseInt(this.value)
         o.value = this.value
         calculateAssets(parameters)
+        calculateComposition(parameters)
      };
     }(key, output);
   };
@@ -213,6 +301,7 @@ window.onload = function () {
 </head>
 <body>
 <div id="chartContainer" style="width:100%; height:520px"></div>
+<div id="chartComposition" style="width:100%; height:520px"></div>
 <div class="slidecontainer">
   years forecast
   <input type="range" min="1" max="30" value="5" class="slider" id="yearsRange">
