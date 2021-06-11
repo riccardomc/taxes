@@ -6,9 +6,9 @@
 <script type="text/javascript">
 
   var parameters = {
-    "salary": 68500,
-    "dividend": 20,
-    "rate": 110,
+    "salary": 46000,
+    "dividend": 0,
+    "rate": 90,
     "years": 5,
     "months": 10,
     "weeks": 4,
@@ -20,7 +20,7 @@ window.onload = function () {
 	var chart = new CanvasJS.Chart("chartContainer", {
     animationEnabled: true,
 		title: {
-			text: "Moneyz"
+			text: "Assets & Taxes over the years"
 		},
     toolTip: {
 		  shared: true
@@ -74,7 +74,7 @@ window.onload = function () {
 	var chart2 = new CanvasJS.Chart("chartComposition", {
     animationEnabled: true,
 		title: {
-			text: "Moneyz"
+      text: "Assets & Taxes percentage in one year"
 		},
     toolTip: {
 		  shared: true
@@ -125,14 +125,13 @@ window.onload = function () {
     var bvAssets = 0;
     var bvPersonalAssets = 0;
     grossIncome = generateIncome(parameters)
-    date = new Date(2020 + year, 0, 1)
 
     // ZZP
-    netIncome = incomeTaxBox1(grossIncome, true, year)
+    netIncome = incomeTaxBox1(grossIncome, true, 0)
     assets += netIncome
     taxes += grossIncome - netIncome
-    netIncomeDataPoints.push({ y: assets, x: 1, label: "ZZP" });
-    taxesDataPoints.push({ y: taxes, x: 1, label: "ZZP" });
+    netIncomeDataPoints.push({ y: assets, x: 1, label: "ZZP", indexLabel: "#percent%", indexLabelPlacement: "inside" });
+    taxesDataPoints.push({ y: taxes, x: 1, label: "ZZP", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
 
     // BV
     // we pay ourselves a fixed salary, which is subtracted from bv profit as expense
@@ -140,11 +139,10 @@ window.onload = function () {
 
     // we pay ourselves a dividend as a percentage of net profit
     grossDividend = bvNetProfit * (p.dividend / 100)
-    netDividend =  dividendTax(grossDividend)
 
     // Personal Net Profit is salary + dividend - taxes
-    personalNetProfit = incomeTaxBox1(p.salary, false, year)
-    personalNetProfit += incomeTaxBox2(netDividend)
+    personalNetProfit = incomeTaxBox1(p.salary, false, 0)
+    personalNetProfit += grossDividend - (incomeTaxBox2(grossDividend) - dividendTax(grossDividend))
     bvPersonalAssets += personalNetProfit
 
     // Assets left in the BV
@@ -154,9 +152,9 @@ window.onload = function () {
     // Taxes payed by BV and ourselves
     bvTaxes += grossIncome - bvNetProfit - personalNetProfit
 
-    bvPersonalAssetsDataPoints.push({ x: 2, y: bvPersonalAssets, label: "BV" });
-    bvNetIncomeDataPoints.push({ x: 2, y: bvAssets, label: "BV" });
-    bvTaxesDataPoints.push({ x: 2, y: bvTaxes, label: "BV" });
+    bvPersonalAssetsDataPoints.push({ x: 2, y: bvPersonalAssets, label: "BV", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
+    bvNetIncomeDataPoints.push({ x: 2, y: bvAssets, label: "BV", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
+    bvTaxesDataPoints.push({ x: 2, y: bvTaxes, label: "BV", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
 
     chart2.options.data[0].dataPoints = netIncomeDataPoints
     chart2.options.data[1].dataPoints = taxesDataPoints
@@ -189,7 +187,7 @@ window.onload = function () {
       assets += netIncome
       taxes += grossIncome - netIncome
       revenue += grossIncome
-      revenueDataPoints.push({ x: date, y: revenue });
+      revenueDataPoints.push({ x: date, y: revenue, indexLabel: "{y}€" });
       netIncomeDataPoints.push({ x: date, y: assets });
       taxesDataPoints.push({ x: date, y: taxes });
 
@@ -199,11 +197,10 @@ window.onload = function () {
 
       // we pay ourselves a dividend as a percentage of net profit
       grossDividend = bvNetProfit * (p.dividend / 100)
-      netDividend =  dividendTax(grossDividend)
 
       // Personal Net Profit is salary + dividend - taxes
       personalNetProfit = incomeTaxBox1(p.salary, false, year)
-      personalNetProfit += incomeTaxBox2(netDividend)
+      personalNetProfit += grossDividend - (incomeTaxBox2(grossDividend) - dividendTax(grossDividend))
       bvPersonalAssets += personalNetProfit
 
       // Assets left in the BV
@@ -215,7 +212,7 @@ window.onload = function () {
 
       bvPersonalAssetsDataPoints.push({ x: date, y: bvPersonalAssets });
       bvNetIncomeDataPoints.push({ x: date, y: bvAssets });
-      bvTotalAssetsDataPoints.push({ x: date, y: (bvPersonalAssets + bvAssets) });
+      bvTotalAssetsDataPoints.push({ x: date, y: (bvPersonalAssets + bvAssets)});
       bvTaxesDataPoints.push({ x: date, y: bvTaxes });
     }
     console.log(p)
@@ -235,14 +232,14 @@ window.onload = function () {
 
   function corporationTax(gross_income) {
     if (gross_income < 200000) {
-      return gross_income - gross_income * 0.19
+      return gross_income - gross_income * 0.15
     }  else {
-      return gross_income - gross_income * 0.25
+      return gross_income - gross_income * 0.205
     }
   }
 
   function dividendTax(amount) {
-    return amount - amount * 0.15
+    return amount * 0.15
   }
 
   function zelfstandigenaftrek(year) {
@@ -255,23 +252,29 @@ window.onload = function () {
     return 6670 + start_up_deduction
   }
 
+  function mkb_winstvrijstelling(amount) {
+    // https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/inkomstenbelasting_voor_ondernemers/mkb_winstvrijstelling
+    return amount * 0.14
+  }
+
   function incomeTaxBox2(amount) {
     return amount * 0.2625
   }
 
   function incomeTaxBox1(gross_income, isZzp, year) {
+    taxable_income = gross_income
     if (isZzp) {
         taxable_income = gross_income - zelfstandigenaftrek(year)
-    } else {
-        taxable_income = gross_income
+        taxable_income -= mkb_winstvrijstelling(taxable_income)
     }
+
     income_bracket_1 = taxable_income <= 68508 ? taxable_income : 68508
     income_bracket_2 = taxable_income - 68508 > 0 ? taxable_income - 68508 : 0
-    tax_bracket_1 = income_bracket_1 * 0.371
+    tax_bracket_1 = income_bracket_1 * 0.3705
     tax_bracket_2 = income_bracket_2 * 0.495
 
     total_tax = tax_bracket_1 + tax_bracket_2
-    net_income = taxable_income - total_tax
+    net_income = gross_income - total_tax
 
     return net_income
   }
@@ -309,7 +312,7 @@ window.onload = function () {
 </div>
 <div class="slidecontainer">
   rate per hour
-  <input type="range" min="1" max="250" value="100" class="slider" id="rateRange">
+  <input type="range" min="1" max="250" value="90" class="slider" id="rateRange">
   <input type="text" readonly="true" id="rateText">
 </div>
 <div class="slidecontainer">
@@ -334,12 +337,12 @@ window.onload = function () {
 </div>
 <div class="slidecontainer">
   salary from BV
-  <input type="range" min="1" max="100000" value="68500" class="slider" id="salaryRange">
+  <input type="range" min="1" max="100000" value="46000" class="slider" id="salaryRange">
   <input type="text" readonly="true" id="salaryText">
 </div>
 <div class="slidecontainer">
   dividends % from BV
-  <input type="range" min="0" max="100" value="20" class="slider" id="dividendRange">
+  <input type="range" min="0" max="100" value="0" class="slider" id="dividendRange">
   <input type="text" readonly="true" id="dividendText">
 </div>
 
