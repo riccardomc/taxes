@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8" />
 <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
 <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script type="text/javascript">
@@ -16,7 +17,7 @@
     "hours": 8,
   };
 
-window.onload = function () {
+$(document).ready(function() {
 	var chart = new CanvasJS.Chart("chartContainer", {
     animationEnabled: true,
 		title: {
@@ -282,23 +283,25 @@ window.onload = function () {
   calculateAssets(parameters)
   calculateComposition(parameters)
 
+  // update either slider or input on field change
+  function update() {
+    v = $(this).val();
+    k = this.id.replace("Range", "").replace("Text", "");
+    if (this.id.includes("Range")) {
+      $("#"+k+"Text").val(v);
+    } else {
+      $("#"+k+"Range").val(v);
+    }
+    parameters[k] = parseInt(v);
+    calculateAssets(parameters);
+    calculateComposition(parameters);
+  }
+
   for(var key in parameters) {
-
-    var output = document.getElementById(key+"Text")
-    var range = document.getElementById(key+"Range")
-
-    output.value = range.value
-    range.oninput = function(k, o) {
-      return function () {
-        parameters[k] = parseInt(this.value)
-        o.value = this.value
-        calculateAssets(parameters)
-        calculateComposition(parameters)
-     };
-    }(key, output);
+    $("#"+key+"Text").on("input", update);
+    $("#"+key+"Range").on("input", update);
   };
-
-}
+});
 
 </script>
 </head>
@@ -308,42 +311,42 @@ window.onload = function () {
 <div class="slidecontainer">
   years forecast
   <input type="range" min="1" max="30" value="5" class="slider" id="yearsRange">
-  <input type="text" readonly="true" id="yearsText">
+  <input type="text" id="yearsText">
 </div>
 <div class="slidecontainer">
   rate per hour
   <input type="range" min="1" max="250" value="90" class="slider" id="rateRange">
-  <input type="text" readonly="true" id="rateText">
+  <input type="text" id="rateText">
 </div>
 <div class="slidecontainer">
   months per year
   <input type="range" min="1" max="12" value="10" class="slider" id="monthsRange">
-  <input type="text" readonly="true" id="monthsText">
+  <input type="text" id="monthsText">
 </div>
 <div class="slidecontainer">
   weeks per month
   <input type="range" min="1" max="4" value="4" class="slider" id="weeksRange">
-  <input type="text" readonly="true" id="weeksText">
+  <input type="text" id="weeksText">
 </div>
 <div class="slidecontainer">
   days per week
   <input type="range" min="1" max="7" value="4" class="slider" id="daysRange">
-  <input type="text" readonly="true" id="daysText">
+  <input type="text" id="daysText">
 </div>
 <div class="slidecontainer">
   hours per day
   <input type="range" min="1" max="24" value="8" class="slider" id="hoursRange">
-  <input type="text" readonly="true" id="hoursText">
+  <input type="text" id="hoursText">
 </div>
 <div class="slidecontainer">
   salary from BV
   <input type="range" min="1" max="100000" value="46000" class="slider" id="salaryRange">
-  <input type="text" readonly="true" id="salaryText">
+  <input type="text" id="salaryText">
 </div>
 <div class="slidecontainer">
   dividends % from BV
   <input type="range" min="0" max="100" value="0" class="slider" id="dividendRange">
-  <input type="text" readonly="true" id="dividendText">
+  <input type="text" id="dividendText">
 </div>
 
 </body>
