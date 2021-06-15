@@ -216,7 +216,6 @@ $(document).ready(function() {
       bvTotalAssetsDataPoints.push({ x: date, y: (bvPersonalAssets + bvAssets)});
       bvTaxesDataPoints.push({ x: date, y: bvTaxes });
     }
-    console.log(p)
     chart.options.data[0].dataPoints = revenueDataPoints
     chart.options.data[1].dataPoints = netIncomeDataPoints
     chart.options.data[2].dataPoints = bvTotalAssetsDataPoints
