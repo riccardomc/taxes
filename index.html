@@ -7,6 +7,7 @@
 <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script type="text/javascript" src="taxes.js"></script>
 <script type="text/javascript" src="app.js"></script>
+<script type="text/javascript" src="app-single-year.js"></script>
 <style>
   body {
     font-family: sans-serif;
@@ -44,12 +45,44 @@
   .slidecontainer input[type="text"] {
     width: 70px;
   }
+  .comparison-layout {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .comparison-controls {
+    flex: 1 1 320px;
+  }
+  .info-panel {
+    flex: 1 1 260px;
+    background: #f7f7f7;
+    border-radius: 6px;
+    padding: 4px 16px 16px;
+  }
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .info-table th,
+  .info-table td {
+    text-align: right;
+    padding: 6px 4px;
+    border-bottom: 1px solid #ddd;
+  }
+  .info-table th:first-child,
+  .info-table td:first-child {
+    text-align: left;
+  }
 </style>
 </head>
 <body>
 
 <div class="tab-buttons">
   <button class="tab-button active" data-tab="zzp-bv">ZZP vs BV (2026 rules)</button>
+  <button class="tab-button" data-tab="single-year">ZZP vs BV vs Employment</button>
 </div>
 
 <div class="tab-panel active" id="tab-zzp-bv">
@@ -95,6 +128,63 @@
     <input type="range" min="0" max="100" value="0" class="slider" id="dividendRange">
     <input type="text" id="dividendText">
   </div>
+</div>
+
+<div class="tab-panel" id="tab-single-year">
+  <div class="comparison-layout">
+    <div class="comparison-controls">
+      <div class="slidecontainer">
+        rate per hour
+        <input type="range" min="1" max="250" value="90" class="slider" id="syRateRange">
+        <input type="text" id="syRateText">
+      </div>
+      <div class="slidecontainer">
+        months per year
+        <input type="range" min="1" max="12" value="10" class="slider" id="syMonthsRange">
+        <input type="text" id="syMonthsText">
+      </div>
+      <div class="slidecontainer">
+        weeks per month
+        <input type="range" min="1" max="4" value="4" class="slider" id="syWeeksRange">
+        <input type="text" id="syWeeksText">
+      </div>
+      <div class="slidecontainer">
+        days per week
+        <input type="range" min="1" max="7" value="4" class="slider" id="syDaysRange">
+        <input type="text" id="syDaysText">
+      </div>
+      <div class="slidecontainer">
+        hours per day
+        <input type="range" min="1" max="24" value="8" class="slider" id="syHoursRange">
+        <input type="text" id="syHoursText">
+      </div>
+      <div class="slidecontainer">
+        salary from BV
+        <input type="range" min="1" max="100000" value="46000" class="slider" id="sySalaryRange">
+        <input type="text" id="sySalaryText">
+      </div>
+      <div class="slidecontainer">
+        dividends % from BV
+        <input type="range" min="0" max="100" value="0" class="slider" id="syDividendRange">
+        <input type="text" id="syDividendText">
+      </div>
+    </div>
+    <div class="info-panel">
+      <h3>Yearly &amp; monthly</h3>
+      <table class="info-table">
+        <thead>
+          <tr><th></th><th>Yearly</th><th>Monthly</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gross revenue</td><td id="syGrossYearly"></td><td id="syGrossMonthly"></td></tr>
+          <tr><td>ZZP net</td><td id="syZzpYearly"></td><td id="syZzpMonthly"></td></tr>
+          <tr><td>BV net (total)</td><td id="syBvYearly"></td><td id="syBvMonthly"></td></tr>
+          <tr><td>Employment net</td><td id="syEmploymentYearly"></td><td id="syEmploymentMonthly"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div id="chartSingleYear" style="width:100%; height:520px"></div>
 </div>
 
 <script type="text/javascript">
