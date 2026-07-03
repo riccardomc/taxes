@@ -2,353 +2,111 @@
 <html>
 <head>
 <meta charset="UTF-8" />
+<title>Dutch Taxes Calculator</title>
 <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
 <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
-<script type="text/javascript">
-
-  var parameters = {
-    "salary": 46000,
-    "dividend": 0,
-    "rate": 90,
-    "years": 5,
-    "months": 10,
-    "weeks": 4,
-    "days": 4,
-    "hours": 8,
-  };
-
-$(document).ready(function() {
-	var chart = new CanvasJS.Chart("chartContainer", {
-    animationEnabled: true,
-		title: {
-			text: "Assets & Taxes over the years"
-		},
-    toolTip: {
-		  shared: true
-	  },
-		data: [
-		{
-      name: "revenue",
-			type: "spline",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "zzp net assets",
-			type: "spline",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "bv total net assets",
-			type: "spline",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "bv personal net assets",
-			type: "spline",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "bv net assets",
-			type: "spline",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "zzp taxes",
-			type: "spline",
-			dataPoints: [],
-      showInLegend: true,
-		},
-    {
-      name: "bv taxes",
-			type: "spline",
-			dataPoints: [],
-      showInLegend: true,
-		}
-		]
-	});
-
-	var chart2 = new CanvasJS.Chart("chartComposition", {
-    animationEnabled: true,
-		title: {
-      text: "Assets & Taxes percentage in one year"
-		},
-    toolTip: {
-		  shared: true
-	  },
-		data: [
-		{
-      name: "zzp net assets",
-			type: "stackedColumn100",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "zzp taxes",
-			type: "stackedColumn100",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "bv personal net assets",
-			type: "stackedColumn100",
-			dataPoints: [],
-      showInLegend: true,
-		},
-		{
-      name: "bv net assets",
-			type: "stackedColumn100",
-			dataPoints: [],
-      showInLegend: true,
-		},
-    {
-      name: "bv taxes",
-			type: "stackedColumn100",
-			dataPoints: [],
-      showInLegend: true,
-		}
-		]
-	});
-
-  calculateComposition = function(p) {
-    netIncomeDataPoints = [];
-    taxesDataPoints = [];
-    bvNetIncomeDataPoints = [];
-    bvPersonalAssetsDataPoints = [];
-    bvTaxesDataPoints = [];
-    var assets = 0;
-    var taxes = 0;
-    var bvTaxes = 0;
-    var bvAssets = 0;
-    var bvPersonalAssets = 0;
-    grossIncome = generateIncome(parameters)
-
-    // ZZP
-    netIncome = incomeTaxBox1(grossIncome, true, 0)
-    assets += netIncome
-    taxes += grossIncome - netIncome
-    netIncomeDataPoints.push({ y: assets, x: 1, label: "ZZP", indexLabel: "#percent%", indexLabelPlacement: "inside" });
-    taxesDataPoints.push({ y: taxes, x: 1, label: "ZZP", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
-
-    // BV
-    // we pay ourselves a fixed salary, which is subtracted from bv profit as expense
-    bvNetProfit = corporationTax(grossIncome) - p.salary
-
-    // we pay ourselves a dividend as a percentage of net profit
-    grossDividend = bvNetProfit * (p.dividend / 100)
-
-    // Personal Net Profit is salary + dividend - taxes
-    personalNetProfit = incomeTaxBox1(p.salary, false, 0)
-    personalNetProfit += grossDividend - (incomeTaxBox2(grossDividend) - dividendTax(grossDividend))
-    bvPersonalAssets += personalNetProfit
-
-    // Assets left in the BV
-    bvNetProfit = bvNetProfit - grossDividend
-    bvAssets += bvNetProfit
-
-    // Taxes payed by BV and ourselves
-    bvTaxes += grossIncome - bvNetProfit - personalNetProfit
-
-    bvPersonalAssetsDataPoints.push({ x: 2, y: bvPersonalAssets, label: "BV", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
-    bvNetIncomeDataPoints.push({ x: 2, y: bvAssets, label: "BV", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
-    bvTaxesDataPoints.push({ x: 2, y: bvTaxes, label: "BV", indexLabel: "#percent%", indexLabelPlacement: "inside"  });
-
-    chart2.options.data[0].dataPoints = netIncomeDataPoints
-    chart2.options.data[1].dataPoints = taxesDataPoints
-    chart2.options.data[2].dataPoints = bvPersonalAssetsDataPoints
-    chart2.options.data[3].dataPoints = bvNetIncomeDataPoints
-    chart2.options.data[4].dataPoints = bvTaxesDataPoints
-    chart2.render();
-  };
-
-  calculateAssets = function(p) {
-    revenueDataPoints = [];
-    netIncomeDataPoints = [];
-    taxesDataPoints = [];
-    bvNetIncomeDataPoints = [];
-    bvPersonalAssetsDataPoints = [];
-    bvTotalAssetsDataPoints = [];
-    bvTaxesDataPoints = [];
-    var revenue = 0;
-    var assets = 0;
-    var taxes = 0;
-    var bvTaxes = 0;
-    var bvAssets = 0;
-    var bvPersonalAssets = 0;
-    for (year = 1; year <= p.years; year++) {
-      grossIncome = generateIncome(parameters)
-      date = new Date(2020 + year, 0, 1)
-
-      // ZZP
-      netIncome = incomeTaxBox1(grossIncome, true, year)
-      assets += netIncome
-      taxes += grossIncome - netIncome
-      revenue += grossIncome
-      revenueDataPoints.push({ x: date, y: revenue, indexLabel: "{y}€" });
-      netIncomeDataPoints.push({ x: date, y: assets });
-      taxesDataPoints.push({ x: date, y: taxes });
-
-      // BV
-      // we pay ourselves a fixed salary, which is subtracted from bv profit as expense
-      bvNetProfit = corporationTax(grossIncome) - p.salary
-
-      // we pay ourselves a dividend as a percentage of net profit
-      grossDividend = bvNetProfit * (p.dividend / 100)
-
-      // Personal Net Profit is salary + dividend - taxes
-      personalNetProfit = incomeTaxBox1(p.salary, false, year)
-      personalNetProfit += grossDividend - (incomeTaxBox2(grossDividend) - dividendTax(grossDividend))
-      bvPersonalAssets += personalNetProfit
-
-      // Assets left in the BV
-      bvNetProfit = bvNetProfit - grossDividend
-      bvAssets += bvNetProfit
-
-      // Taxes payed by BV and ourselves
-      bvTaxes += grossIncome - bvNetProfit - personalNetProfit
-
-      bvPersonalAssetsDataPoints.push({ x: date, y: bvPersonalAssets });
-      bvNetIncomeDataPoints.push({ x: date, y: bvAssets });
-      bvTotalAssetsDataPoints.push({ x: date, y: (bvPersonalAssets + bvAssets)});
-      bvTaxesDataPoints.push({ x: date, y: bvTaxes });
-    }
-    chart.options.data[0].dataPoints = revenueDataPoints
-    chart.options.data[1].dataPoints = netIncomeDataPoints
-    chart.options.data[2].dataPoints = bvTotalAssetsDataPoints
-    chart.options.data[3].dataPoints = bvPersonalAssetsDataPoints
-    chart.options.data[4].dataPoints = bvNetIncomeDataPoints
-    chart.options.data[5].dataPoints = taxesDataPoints
-    chart.options.data[6].dataPoints = bvTaxesDataPoints
-    chart.render();
-  };
-
-  function generateIncome(p) {
-    return p.rate * p.days * p.months * p.hours * p.weeks
+<script type="text/javascript" src="taxes.js"></script>
+<script type="text/javascript" src="app.js"></script>
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 0 auto;
+    max-width: 1000px;
+    padding: 16px;
   }
-
-  function corporationTax(gross_income) {
-    if (gross_income < 200000) {
-      return gross_income - gross_income * 0.15
-    }  else {
-      return gross_income - gross_income * 0.205
-    }
+  .tab-buttons {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid #ccc;
+    margin-bottom: 16px;
   }
-
-  function dividendTax(amount) {
-    return amount * 0.15
+  .tab-button {
+    padding: 8px 16px;
+    border: none;
+    background: #eee;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px 4px 0 0;
   }
-
-  function zelfstandigenaftrek(year) {
-    // https://business.gov.nl/amendment/private-business-ownership-allowance-reduced/
-    if (year < 4) {
-      start_up_deduction = 2123
-    } else {
-      start_up_deduction = 0
-    }
-    return 6670 + start_up_deduction
+  .tab-button.active {
+    background: #ccc;
+    font-weight: bold;
   }
-
-  function mkb_winstvrijstelling(amount) {
-    // https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/inkomstenbelasting_voor_ondernemers/mkb_winstvrijstelling
-    return amount * 0.14
+  .tab-panel {
+    display: none;
   }
-
-  function incomeTaxBox2(amount) {
-    return amount * 0.2625
+  .tab-panel.active {
+    display: block;
   }
-
-  function incomeTaxBox1(gross_income, isZzp, year) {
-    taxable_income = gross_income
-    if (isZzp) {
-        taxable_income = gross_income - zelfstandigenaftrek(year)
-        taxable_income -= mkb_winstvrijstelling(taxable_income)
-    }
-
-    income_bracket_1 = taxable_income <= 68508 ? taxable_income : 68508
-    income_bracket_2 = taxable_income - 68508 > 0 ? taxable_income - 68508 : 0
-    tax_bracket_1 = income_bracket_1 * 0.3705
-    tax_bracket_2 = income_bracket_2 * 0.495
-
-    total_tax = tax_bracket_1 + tax_bracket_2
-    net_income = gross_income - total_tax
-
-    return net_income
+  .slidecontainer {
+    margin: 8px 0;
   }
-
-  calculateAssets(parameters)
-  calculateComposition(parameters)
-
-  // update either slider or input on field change
-  function update() {
-    v = $(this).val();
-    k = this.id.replace("Range", "").replace("Text", "");
-    if (this.id.includes("Range")) {
-      $("#"+k+"Text").val(v);
-    } else {
-      $("#"+k+"Range").val(v);
-    }
-    parameters[k] = parseInt(v);
-    calculateAssets(parameters);
-    calculateComposition(parameters);
+  .slidecontainer input[type="text"] {
+    width: 70px;
   }
-
-  for(var key in parameters) {
-    $("#"+key+"Text").on("input", update);
-    $("#"+key+"Range").on("input", update);
-    $("#"+key+"Text").val(parameters[key])
-  };
-
-});
-
-</script>
+</style>
 </head>
 <body>
-<div id="chartContainer" style="width:100%; height:520px"></div>
-<div id="chartComposition" style="width:100%; height:520px"></div>
-<div class="slidecontainer">
-  years forecast
-  <input type="range" min="1" max="30" value="5" class="slider" id="yearsRange">
-  <input type="text" id="yearsText">
+
+<div class="tab-buttons">
+  <button class="tab-button active" data-tab="zzp-bv">ZZP vs BV (2026 rules)</button>
 </div>
-<div class="slidecontainer">
-  rate per hour
-  <input type="range" min="1" max="250" value="90" class="slider" id="rateRange">
-  <input type="text" id="rateText">
+
+<div class="tab-panel active" id="tab-zzp-bv">
+  <div id="chartContainer" style="width:100%; height:520px"></div>
+  <div id="chartComposition" style="width:100%; height:520px"></div>
+  <div class="slidecontainer">
+    years forecast
+    <input type="range" min="1" max="30" value="5" class="slider" id="yearsRange">
+    <input type="text" id="yearsText">
+  </div>
+  <div class="slidecontainer">
+    rate per hour
+    <input type="range" min="1" max="250" value="90" class="slider" id="rateRange">
+    <input type="text" id="rateText">
+  </div>
+  <div class="slidecontainer">
+    months per year
+    <input type="range" min="1" max="12" value="10" class="slider" id="monthsRange">
+    <input type="text" id="monthsText">
+  </div>
+  <div class="slidecontainer">
+    weeks per month
+    <input type="range" min="1" max="4" value="4" class="slider" id="weeksRange">
+    <input type="text" id="weeksText">
+  </div>
+  <div class="slidecontainer">
+    days per week
+    <input type="range" min="1" max="7" value="4" class="slider" id="daysRange">
+    <input type="text" id="daysText">
+  </div>
+  <div class="slidecontainer">
+    hours per day
+    <input type="range" min="1" max="24" value="8" class="slider" id="hoursRange">
+    <input type="text" id="hoursText">
+  </div>
+  <div class="slidecontainer">
+    salary from BV
+    <input type="range" min="1" max="100000" value="46000" class="slider" id="salaryRange">
+    <input type="text" id="salaryText">
+  </div>
+  <div class="slidecontainer">
+    dividends % from BV
+    <input type="range" min="0" max="100" value="0" class="slider" id="dividendRange">
+    <input type="text" id="dividendText">
+  </div>
 </div>
-<div class="slidecontainer">
-  months per year
-  <input type="range" min="1" max="12" value="10" class="slider" id="monthsRange">
-  <input type="text" id="monthsText">
-</div>
-<div class="slidecontainer">
-  weeks per month
-  <input type="range" min="1" max="4" value="4" class="slider" id="weeksRange">
-  <input type="text" id="weeksText">
-</div>
-<div class="slidecontainer">
-  days per week
-  <input type="range" min="1" max="7" value="4" class="slider" id="daysRange">
-  <input type="text" id="daysText">
-</div>
-<div class="slidecontainer">
-  hours per day
-  <input type="range" min="1" max="24" value="8" class="slider" id="hoursRange">
-  <input type="text" id="hoursText">
-</div>
-<div class="slidecontainer">
-  salary from BV
-  <input type="range" min="1" max="100000" value="46000" class="slider" id="salaryRange">
-  <input type="text" id="salaryText">
-</div>
-<div class="slidecontainer">
-  dividends % from BV
-  <input type="range" min="0" max="100" value="0" class="slider" id="dividendRange">
-  <input type="text" id="dividendText">
-</div>
+
+<script type="text/javascript">
+  document.querySelectorAll(".tab-button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".tab-button").forEach(function (b) { b.classList.remove("active"); });
+      document.querySelectorAll(".tab-panel").forEach(function (p) { p.classList.remove("active"); });
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+</script>
 
 </body>
 </html>
