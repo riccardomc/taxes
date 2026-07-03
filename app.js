@@ -13,6 +13,18 @@ var parameters = {
 };
 
 $(document).ready(function () {
+  var currencyFormatter = new Intl.NumberFormat("nl-NL", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  });
+
+  function updateGrossInfo(p) {
+    var grossIncome = generateIncome(p);
+    $("#fcGrossYearly").text(currencyFormatter.format(grossIncome));
+    $("#fcGrossMonthly").text(currencyFormatter.format(grossIncome / 12));
+  }
+
   var chart = new CanvasJS.Chart("chartContainer", {
     animationEnabled: true,
     title: {
@@ -160,6 +172,7 @@ $(document).ready(function () {
 
   calculateAssets(parameters);
   calculateComposition(parameters);
+  updateGrossInfo(parameters);
 
   // update either slider or input on field change
   function update() {
@@ -173,6 +186,7 @@ $(document).ready(function () {
     parameters[k] = parseInt(v, 10);
     calculateAssets(parameters);
     calculateComposition(parameters);
+    updateGrossInfo(parameters);
   }
 
   for (var key in parameters) {

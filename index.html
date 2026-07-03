@@ -88,45 +88,60 @@
 <div class="tab-panel active" id="tab-zzp-bv">
   <div id="chartContainer" style="width:100%; height:520px"></div>
   <div id="chartComposition" style="width:100%; height:520px"></div>
-  <div class="slidecontainer">
-    years forecast
-    <input type="range" min="1" max="30" value="5" class="slider" id="yearsRange">
-    <input type="text" id="yearsText">
-  </div>
-  <div class="slidecontainer">
-    rate per hour
-    <input type="range" min="1" max="250" value="90" class="slider" id="rateRange">
-    <input type="text" id="rateText">
-  </div>
-  <div class="slidecontainer">
-    months per year
-    <input type="range" min="1" max="12" value="10" class="slider" id="monthsRange">
-    <input type="text" id="monthsText">
-  </div>
-  <div class="slidecontainer">
-    weeks per month
-    <input type="range" min="1" max="4" value="4" class="slider" id="weeksRange">
-    <input type="text" id="weeksText">
-  </div>
-  <div class="slidecontainer">
-    days per week
-    <input type="range" min="1" max="7" value="4" class="slider" id="daysRange">
-    <input type="text" id="daysText">
-  </div>
-  <div class="slidecontainer">
-    hours per day
-    <input type="range" min="1" max="24" value="8" class="slider" id="hoursRange">
-    <input type="text" id="hoursText">
-  </div>
-  <div class="slidecontainer">
-    salary from BV
-    <input type="range" min="1" max="100000" value="46000" class="slider" id="salaryRange">
-    <input type="text" id="salaryText">
-  </div>
-  <div class="slidecontainer">
-    dividends % from BV
-    <input type="range" min="0" max="100" value="0" class="slider" id="dividendRange">
-    <input type="text" id="dividendText">
+  <div class="comparison-layout">
+    <div class="comparison-controls">
+      <div class="slidecontainer">
+        years forecast
+        <input type="range" min="1" max="30" value="5" class="slider" id="yearsRange">
+        <input type="text" id="yearsText">
+      </div>
+      <div class="slidecontainer">
+        rate per hour
+        <input type="range" min="1" max="250" value="90" class="slider" id="rateRange">
+        <input type="text" id="rateText">
+      </div>
+      <div class="slidecontainer">
+        months per year
+        <input type="range" min="1" max="12" value="10" class="slider" id="monthsRange">
+        <input type="text" id="monthsText">
+      </div>
+      <div class="slidecontainer">
+        weeks per month
+        <input type="range" min="1" max="4" value="4" class="slider" id="weeksRange">
+        <input type="text" id="weeksText">
+      </div>
+      <div class="slidecontainer">
+        days per week
+        <input type="range" min="1" max="7" value="4" class="slider" id="daysRange">
+        <input type="text" id="daysText">
+      </div>
+      <div class="slidecontainer">
+        hours per day
+        <input type="range" min="1" max="24" value="8" class="slider" id="hoursRange">
+        <input type="text" id="hoursText">
+      </div>
+      <div class="slidecontainer">
+        salary from BV
+        <input type="range" min="1" max="100000" value="46000" class="slider" id="salaryRange">
+        <input type="text" id="salaryText">
+      </div>
+      <div class="slidecontainer">
+        dividends % from BV
+        <input type="range" min="0" max="100" value="0" class="slider" id="dividendRange">
+        <input type="text" id="dividendText">
+      </div>
+    </div>
+    <div class="info-panel">
+      <h3>Gross income</h3>
+      <table class="info-table">
+        <thead>
+          <tr><th></th><th>Yearly</th><th>Monthly</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gross revenue</td><td id="fcGrossYearly"></td><td id="fcGrossMonthly"></td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
